@@ -1,0 +1,18 @@
+{
+  "Google": {
+    "Data Analyst": {
+      "skills": ["SQL", "Python", "Data Visualization", "Statistics", "Machine Learning"],
+      "experience_keywords": ["data analysis", "reporting", "dashboard", "business intelligence"]
+    },
+    "Software Engineer": {
+      "skills": ["Java", "C++", "System Design", "Algorithms"],
+      "experience_keywords": ["backend", "frontend", "microservices", "architecture"]
+    }
+  },
+  "Microsoft": {
+    "Data Analyst": {
+      "skills": ["Excel", "Power BI", "SQL", "R"],
+      "experience_keywords": ["data cleaning", "KPI", "business metrics"]
+    }
+  }
+}
