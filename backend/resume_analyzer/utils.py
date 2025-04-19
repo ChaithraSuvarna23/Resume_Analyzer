@@ -1,50 +1,52 @@
-import PyPDF2
+import pdfplumber
 import docx
 import os
 import json
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from PyPDF2.errors import PdfReadError
+
 
 def extract_text_from_resume(file_path):
-    """
-    Extracts text from PDF or DOCX file.
-    """
     text = ''
     if file_path.endswith('.pdf'):
-        with open(file_path, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
-            for page in reader.pages:
-                text += page.extract_text() or ''
+        try:
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    text += page.extract_text() or ''
+        except Exception as e:
+            print(f"❌ PDF extract error: {e}")
+            raise ValueError("Could not read PDF. Try uploading a .docx instead.")
     elif file_path.endswith('.docx'):
         doc = docx.Document(file_path)
         for para in doc.paragraphs:
             text += para.text + '\n'
     return text
 
+
+
 def extract_details(text):
     """
-    Extracts skills, years of experience, and email from resume text.
+    Extracts skills, CGPA, and email from resume text.
     """
-    skills = re.findall(r"\b(Python|Java|SQL|Excel|Pandas|Machine Learning|Deep Learning|Tableau)\b", text, re.IGNORECASE)
-    experience = re.findall(r'(\d+)\+?\s+years?', text, re.IGNORECASE)
+    skills = re.findall(r"\b(Python|Java|SQL|Excel|Pandas|Machine Learning|Deep Learning|Tableau|C\+\+|C|React|Angular|HTML|CSS|Power BI|Cloud|ETL|Docker|Linux|Git|Node\.js|CI/CD|Kubernetes|AWS|Azure|GCP|Unix)\b", text, re.IGNORECASE)
     email = re.findall(r'[\w\.-]+@[\w\.-]+', text)
+    cgpa_match = re.search(r'(CGPA|GPA)\s*[:\-]?\s*(\d+\.\d+)', text, re.IGNORECASE)
+    if not cgpa_match:
+        cgpa_match = re.search(r'(\d+\.\d+)\s*(CGPA|GPA)', text, re.IGNORECASE)
 
     return {
         'email': email[0] if email else 'Not found',
         'skills': list(set(skills)),
-        'experience': experience[0] if experience else 'Not found'
+        'cgpa': float(cgpa_match.group(2)) if cgpa_match else 0.0
     }
 
-def match_job_description(resume_text, job_title, company):
+def match_job_description(resume_details, job_title, company):
     """
-    Matches the resume text with the job description based on cosine similarity.
-    Returns a similarity score and suggestions.
+    Matches resume details with job criteria (skills and CGPA).
+    Returns a score and suggestions.
     """
-    # Ensure resume_text and job_description are strings
-    if not isinstance(resume_text, str):
-        raise ValueError("The resume text is not a valid string.")
-    
     json_path = os.path.join(os.path.dirname(__file__), '..', 'job_descriptions.json')
 
     try:
@@ -56,31 +58,26 @@ def match_job_description(resume_text, job_title, company):
     company_data = jd_data.get(company, {})
     job_data = company_data.get(job_title, {})
 
-    # Ensure the job description data is valid
     if not job_data:
         return 0, ['Job description not found for the selected company/title.']
 
-    skills = job_data.get('skills', [])
-    experience_keywords = job_data.get('experience_keywords', [])
+    required_skills = set(map(str.lower, job_data.get('skills', [])))
+    required_cgpa = job_data.get('cgpa', 0.0)
 
-    # Combine skills and experience keywords into one text block
-    job_description = ' '.join(skills + experience_keywords)
+    resume_skills = set(map(str.lower, resume_details.get('skills', [])))
+    matched_skills = required_skills.intersection(resume_skills)
 
-    # Initialize the vectorizer and calculate cosine similarity
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform([resume_text, job_description])
-    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+    skill_score = (len(matched_skills) / len(required_skills)) * 100 if required_skills else 0
+    cgpa_score = 100 if resume_details.get('cgpa', 0) >= required_cgpa else 0
 
-    score = round(similarity * 100)
+    total_score = round((skill_score * 0.7) + (cgpa_score * 0.3))
 
-    # Generate suggestions based on score
     suggestions = []
-    if score < 60:
-        suggestions.append("Include more keywords relevant to the job.")
-        suggestions.append("Improve alignment with the job description.")
-    elif score < 80:
-        suggestions.append("Looks good, but could be optimized further.")
-    else:
+    if skill_score < 70:
+        suggestions.append("Consider adding more job-relevant skills.")
+    if cgpa_score == 0:
+        suggestions.append(f"Required CGPA is {required_cgpa}, but resume shows lower.")
+    if not suggestions:
         suggestions.append("Great match!")
 
-    return score, suggestions
+    return total_score, suggestions

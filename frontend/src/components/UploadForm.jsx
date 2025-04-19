@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
-import { uploadResume } from '../api/resumeAPI';
+import React, { useState, useEffect } from 'react';
+import { uploadResume, getJobData } from '../api/resumeAPI';
 import '../index.css';
 
 const UploadForm = () => {
   const [resumeFile, setResumeFile] = useState(null);
-  const [jobTitle, setJobTitle] = useState('');
   const [company, setCompany] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobData, setJobData] = useState({});
   const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getJobData();
+      setJobData(data);
+    };
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,6 +28,9 @@ const UploadForm = () => {
     setResult(response);
   };
 
+  const companyOptions = Object.keys(jobData);
+  const jobOptions = company ? Object.keys(jobData[company] || {}) : [];
+
   return (
     <div className="upload-form">
       <h2>Smart Resume Analyzer</h2>
@@ -28,18 +40,24 @@ const UploadForm = () => {
           accept=".pdf,.doc,.docx"
           onChange={(e) => setResumeFile(e.target.files[0])}
         />
-        <input
-          type="text"
-          placeholder="Job Title"
-          value={jobTitle}
-          onChange={(e) => setJobTitle(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Company"
-          value={company}
-          onChange={(e) => setCompany(e.target.value)}
-        />
+
+        <select value={company} onChange={(e) => {
+          setCompany(e.target.value);
+          setJobTitle('');
+        }}>
+          <option value="">Select Company</option>
+          {companyOptions.map((comp) => (
+            <option key={comp} value={comp}>{comp}</option>
+          ))}
+        </select>
+
+        <select value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} disabled={!company}>
+          <option value="">Select Job Title</option>
+          {jobOptions.map((title) => (
+            <option key={title} value={title}>{title}</option>
+          ))}
+        </select>
+
         <button type="submit">Analyze</button>
       </form>
 

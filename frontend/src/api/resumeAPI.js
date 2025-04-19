@@ -19,3 +19,13 @@ export const uploadResume = async (file, jobTitle, company) => {
     }
   };
   
+  export const getJobData = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/job_data');
+      if (!response.ok) throw new Error('Failed to fetch job data');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching job data:', error);
+      return {};
+    }
+  };

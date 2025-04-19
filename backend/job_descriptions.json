@@ -1,18 +1,38 @@
 {
-  "Google": {
-    "Data Analyst": {
-      "skills": ["SQL", "Python", "Data Visualization", "Statistics", "Machine Learning"],
-      "experience_keywords": ["data analysis", "reporting", "dashboard", "business intelligence"]
-    },
-    "Software Engineer": {
-      "skills": ["Java", "C++", "System Design", "Algorithms"],
-      "experience_keywords": ["backend", "frontend", "microservices", "architecture"]
+  "Monetize360": {
+    "Software Developer": {
+      "cgpa": 8.0,
+      "skills": ["Java", "Python", "C++", "HTML", "CSS","JavaScript","Angular","React"]
     }
   },
-  "Microsoft": {
-    "Data Analyst": {
-      "skills": ["Excel", "Power BI", "SQL", "R"],
-      "experience_keywords": ["data cleaning", "KPI", "business metrics"]
+  "Ribbon Communitcation": {
+    "R&D": {
+      "cgpa": 7.5,
+      "skills": ["C", "C++", "Linux", "Python","Networking","Security Encryption","Cloud"]
+    }
+  },
+  "WiseAnalytics":{
+    "Data Engineer":{
+      "cgpa": 6.0,
+      "skills": ["SQL","Python","Spark","Cloud","ETL"]
+    },
+    "Data Scientist":{
+      "cgpa": 6.0,
+      "skills": ["ML","Python","Statistics","Data Visualization"]
+    },
+    "Data Analyst":{
+      "cgpa": 6.0,
+      "skills": ["SQL","Excel","Power BI","Cloud","ETL"]
+    },
+    "Full Stack Developer":{
+      "cgpa": 6.0,
+      "skills": ["React","Node.js","Databases","Cloud","DSA"]
+    }
+  },
+  "Picsys":{
+    "DevOps Engineer":{
+      "cgpa": 0.0,
+      "skills": ["CI/CD","Cloud","Git","Python","Docker","Kubernetes","AWS|Azure|GCP","Linux|Unix"]
     }
   }
 }

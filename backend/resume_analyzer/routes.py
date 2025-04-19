@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, request, jsonify
 from .utils import extract_text_from_resume, extract_details, match_job_description
 import os
@@ -31,7 +32,7 @@ def analyze_resume():
         if isinstance(resume_text, dict):
             resume_text = str(resume_text)
         details = extract_details(resume_text)
-        score, suggestions = match_job_description(resume_text, job_title, company)
+        score, suggestions = match_job_description(details, job_title, company)
 
         return jsonify({
             'text': resume_text,
@@ -44,3 +45,13 @@ def analyze_resume():
         print("🔥 Error during /api/analyze")
         traceback.print_exc()
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@analyzer_blueprint.route('/api/job_data', methods=['GET'])
+def get_job_data():
+    try:
+        json_path = os.path.join(os.path.dirname(__file__), '..', 'job_descriptions.json')
+        with open(json_path, 'r') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': 'Could not load job data', 'details': str(e)}), 500
